@@ -1,12 +1,10 @@
-using UnityEngine;
-
 namespace PartAdjustment
 {
-    // Accepted calibration from 2.1.3; X is mirrored outward/inward per side.
+    // Preserve the accepted relative alignment without raising the physical wheel mounts.
+    // Vertical calibration belongs to the visible model; wheel Y stays native until adjusted.
     internal static class SuspensionAlignmentDefaults
     {
-        internal static Vector3 For(bool buggy, bool left) => buggy
-            ? new Vector3(0f, .10f, 0f)
-            : new Vector3(left ? .10f : -.10f, .20f, 0f);
+        internal static float Lateral(bool buggy, bool left) => buggy ? 0f : left ? .10f : -.10f;
+        internal static float ModelDrop(bool buggy) => buggy ? .10f : .20f;
     }
 }

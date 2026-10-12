@@ -38,6 +38,7 @@ namespace PartAdjustment
         private SuspensionStructure structure;
         private bool lastKit;
         private bool buggyFamily;
+        private readonly SuspensionOwnership ownership = new SuspensionOwnership();
 
         private sealed class Mount
         {
@@ -79,11 +80,12 @@ namespace PartAdjustment
             foreach (var wheel in wheels)
             {
                 var suspension = SuspensionSupport.EnabledFsm(wheel.transform, "Suspension");
-                mounts.Add(new Mount { Transform = wheel.transform, Baseline = VanillaPosition(wheel.transform),
+                mounts.Add(new Mount { Transform = wheel.transform,
+                    Baseline = KitFitted ? VanillaPosition(wheel.transform) : wheel.transform.localPosition,
                     Controller = wheel, Front = wheel.name.Contains("_F"),
                     Suspension = suspension, Lifted = suspension?.ActiveStateName == "lifted" });
             }
-            RestoreFactoryAssembly();
+            RestoreFactoryAssembly(KitFitted);
             stanceGeometry = new SuspensionStanceGeometry(transform, model, factoryModel);
             RefreshCenters();
             widthGeometry = new SuspensionWidthGeometry(model);
@@ -115,7 +117,7 @@ namespace PartAdjustment
             Apply();
         }
 
-        private void RestoreFactoryAssembly()
+        private void RestoreFactoryAssembly(bool restoreGeometry)
         {
             // Prefer the registered prefab: loaded transforms may already contain 2.1.0 edits.
             var instance = GetComponent<ES3Prefab>();
@@ -132,7 +134,7 @@ namespace PartAdjustment
             {
                 modelPosition = factoryModel.localPosition; modelScale = factoryModel.localScale;
                 // Older height edits could persist a rear mesh's pose and hidden springs.
-                foreach (var rear in model.GetComponentsInChildren<MeshFilter>(true))
+                if (restoreGeometry) foreach (var rear in model.GetComponentsInChildren<MeshFilter>(true))
                 {
                     var n = rear.name.ToLowerInvariant();
                     if (!n.Contains("suspension") || !n.Contains("rear")) continue;
@@ -237,14 +239,25 @@ namespace PartAdjustment
         internal void Apply()
         {
             if (!Supported()) return;
-            if (!KitFitted && (Width != 1f || RideHeight != 0f || Balance != 0f))
+            var update = ownership.BeginApply(KitFitted, Width != 1f || RideHeight != 0f || Balance != 0f);
+            if (update == SuspensionUpdate.None) return;
+            if (update == SuspensionUpdate.RestoreStock)
             {
                 Width = 1f;
                 RideHeight = Balance = 0f;
+                RestoreFactoryAssembly(true);
+                foreach (var mount in mounts)
+                {
+                    mount.Baseline = VanillaPosition(mount.Transform, "stock");
+                    mount.Lifted = false;
+                    mount.Transform.localPosition = mount.Baseline;
+                }
+                RefreshCenters();
                 Plugin.Log.LogDebug("Suspension of " + name + " back to standard: no lift kit fitted.");
             }
             model.localScale = new Vector3(modelScale.x * Width, modelScale.y, modelScale.z);
-            model.localPosition = modelPosition - Vector3.up * RideHeight;
+            float visualDrop = KitFitted ? SuspensionAlignmentDefaults.ModelDrop(buggyFamily) : 0f;
+            model.localPosition = modelPosition - Vector3.up * (RideHeight + visualDrop);
             stanceGeometry.Apply(Balance);
             structure.Apply(modelPosition, modelScale, Width);
             braces.ShowForWidth(Width);
@@ -297,11 +310,11 @@ namespace PartAdjustment
             hingePosition = SaveVariables.Vector(variables, SaveVariables.HingePosition, hingePosition).Value;
             structure.Read(variables);
             stanceGeometry.Read(variables);
-            RestoreFactoryAssembly();
+            RestoreFactoryAssembly(KitFitted);
             SaveVariables.RemoveHeight(variables);
             foreach (var mount in mounts) if (mount.Transform != null)
             {
-                mount.Baseline = VanillaPosition(mount.Transform);
+                mount.Baseline = KitFitted ? VanillaPosition(mount.Transform) : mount.Transform.localPosition;
                 mount.Lifted = mount.Suspension?.ActiveStateName == "lifted";
             }
             RefreshCenters();
@@ -310,7 +323,9 @@ namespace PartAdjustment
 
         private void ApplyMount(Mount mount)
         {
-            if (mount.Transform == null) return;
+            // Native stock transitions may happen wheel by wheel. Never overwrite a stock wheel
+            // while another wheel's callback is applying the fitted kit's stance.
+            if (mount.Transform == null || !KitFitted || !mount.Lifted) return;
             var position = mount.Baseline;
             // Preserve native clearance, Y and Z; widening adds only the axle's lateral growth.
             if (Width != 1f)
@@ -319,11 +334,8 @@ namespace PartAdjustment
                     position.x += offset.x;
                 else position.x = AdjustmentMath.SpacedX(position.x, mount.Center, Width);
             }
-            if (KitFitted && mount.Lifted)
-            {
-                position += SuspensionAlignmentDefaults.For(buggyFamily, mount.Transform.name.EndsWith("L", StringComparison.Ordinal));
-                position.y -= SuspensionStanceMath.Lift(RideHeight, Balance, mount.Front);
-            }
+            position.x += SuspensionAlignmentDefaults.Lateral(buggyFamily, mount.Transform.name.EndsWith("L", StringComparison.Ordinal));
+            position.y = SuspensionStanceMath.MountY(mount.Baseline.y, RideHeight, Balance, mount.Front);
             if (!mount.Transform.localPosition.Equals(position)) mount.Transform.localPosition = position;
             // NWH WheelController.Step reads this mount to cast the suspension ray, apply forces, and place
             // wheel.visualTransform and wheel.colliderTransform. The wheel's own scale/radius stays unchanged.
@@ -338,8 +350,6 @@ namespace PartAdjustment
             mount.Baseline = wheel.localPosition;
             mount.Lifted = state == "lifted";
             RefreshCenters();
-            // the kit went on or came off (that is what moves the vanilla mounts): without a kit everything returns to standard
-            if (!KitFitted && (Width != 1f || RideHeight != 0f || Balance != 0f)) { Apply(); return; }
             Apply();
         }
 

@@ -20,6 +20,7 @@ namespace PartAdjustment
         }
 
         internal static float Lift(float height, float balance, bool front) => height + (front ? balance : -balance);
+        internal static float MountY(float nativeY, float height, float balance, bool front) => nativeY - Lift(height, balance, front);
         private static float FiniteClamp(float value, float limit) => float.IsNaN(value) || float.IsInfinity(value)
             ? 0f : Math.Max(-limit, Math.Min(limit, value));
     }
