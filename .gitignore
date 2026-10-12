@@ -1,0 +1,13 @@
+bin/
+obj/
+__pycache__/
+research/
+preview/
+design/
+release/
+verification/**/bin/
+verification/**/obj/
+Models/Screwdriver.glb
+WheelAlignmentDebug.cs
+WheelAlignmentProfiles.cs
+RearSuspensionSwap.cs
