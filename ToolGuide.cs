@@ -54,7 +54,7 @@ namespace PartAdjustment
             }
             if(label.text!=text)label.text=text;
             string context=Context(use);
-            bool drivePrompt=UltimateTool.Driving || (UltimateTool.DriveOffered && !UltimateTool.Holding);
+            bool drivePrompt=UltimateTool.Driving || UltimateTool.DriveHasUse;
             if(context!=null && !drivePrompt)SetUse(context);else RestoreUse();
             if(UltimateTool.DriveOffered && !UltimateTool.Driving && !UltimateTool.Screwdriver && UltimateTool.HeldId=="seat"
                 && UltimateTool.Compatible(UltimateTool.TargetSlot,UltimateTool.Held)
@@ -63,6 +63,12 @@ namespace PartAdjustment
                 var nameObject=FsmVariables.GlobalVariables.GetFsmGameObject("UI_ItemName")?.Value;
                 seatPrompt=nameObject==null?null:nameObject.GetComponent<Text>();
                 if(seatPrompt!=null){lastSeatPrompt="Mount driver seat ("+use+")";seatPrompt.text=lastSeatPrompt;}
+            }
+            else if(UltimateTool.DriveOffered && !UltimateTool.Driving && !UltimateTool.Holding && UltimateTool.AimedPart)
+            {
+                var nameObject=FsmVariables.GlobalVariables.GetFsmGameObject("UI_ItemName")?.Value;
+                seatPrompt=nameObject==null?null:nameObject.GetComponent<Text>();
+                if(seatPrompt!=null){lastSeatPrompt=UltimateTool.Label(UltimateTool.Target);seatPrompt.text=lastSeatPrompt;}
             }
             else RestoreSeatPrompt();
             if(cursor==null)cursor=Resources.FindObjectsOfTypeAll<PlayMakerFSM>().FirstOrDefault(f=>f.FsmName=="MouseIcon"&&f.name=="Canvas"&&f.gameObject.scene.IsValid());
@@ -81,7 +87,7 @@ namespace PartAdjustment
             {
                 string name=UltimateTool.Label(UltimateTool.Held);
                 if(UltimateTool.Screwdriver)return name+" - held in place\n"+use+" - move / rotate held part";
-                if(UltimateTool.Compatible(UltimateTool.TargetSlot,UltimateTool.Held))return name+" - held in place\n"+use+" - attach to "+UltimateTool.Label(UltimateTool.TargetSlot.gameObject);
+                if(UltimateTool.Compatible(UltimateTool.TargetSlot,UltimateTool.Held))return name+" - held in place\n"+use+" - attach to "+UltimateTool.SlotLabel(UltimateTool.TargetSlot,UltimateTool.Held);
                 if(UltimateTool.FreeSurface(out var parent,out var vehicle))return name+" - held in place\n"+use+" - attach here";
                 return name+" - held in place\nAim at a compatible attachment point";
             }
@@ -89,7 +95,7 @@ namespace PartAdjustment
             var suspension=target.GetComponent<SuspensionPickTarget>();
             if(UltimateTool.Screwdriver && suspension!=null)return suspension.Adjustment.KitFitted?use+" - adjust suspension":null;
             if(UltimateTool.Screwdriver && UltimateTool.TargetHinge!=null)return UltimateTool.Label(UltimateTool.TargetHinge.gameObject)+"\n"+use+" - move / rotate";
-            if(target.CompareTag("vehPart")&&AdjustmentRunner.Find(target,"de_Attach")!=null)
+            if(UltimateTool.CanDetach(target))
                 return UltimateTool.Label(target)+"\n"+use+(UltimateTool.Screwdriver?" - move / rotate":" - detach and hold");
             return null;
         }

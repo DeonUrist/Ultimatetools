@@ -63,7 +63,7 @@ namespace PartAdjustment
             if(pickCollider!=null)pickCollider.enabled=visible && UltimateTool.Active && held!=null;
             if(gameObject.activeSelf!=visible)gameObject.SetActive(visible);
             if(!visible)return;
-            transform.position=Slot.transform.position; transform.LookAt(camera.transform,Vector3.up);
+            transform.position=UltimateTool.SlotPoint(Slot,held); transform.LookAt(camera.transform,Vector3.up);
         }
         private void OnDestroy(){UltimateTool.Markers.Remove(this);if(tint!=null)Destroy(tint);}
     }

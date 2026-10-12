@@ -1,9 +1,9 @@
-Fixes a suspension calibration error that could put Rustallion near the ground with an unadjusted vanilla lift kit. The old vertical alignment raised the physical wheel mounts by 20 cm on the lifted family (10 cm on the buggy family), lowering the body. Vertical alignment now lowers the visible axle model instead, retaining native physical mount height and the accepted relative wheel/axle alignment. Fixed underbody pieces remain with the body.
+Ultimate Tools 2.3.2 fixes wrench removal of mounted steering wheels, turbos and superchargers. Native attached trigger colliders are accepted. Parts such as gear levers that disable their pickup collider while mounted receive temporary tool-only selection shapes using the original collider dimensions. Cassettes remain hand-only.
 
-Cars without a lift kit stay under native wheel-position control. Kit removal restores stock geometry once; subsequent native wheel callbacks cannot overwrite neighbouring stock wheels. Orphaned saved width/stance values without a kit are reset.
+Aimed removable parts now take priority over an overlapping Drive (F) trigger and display the correct tool hint. Normal vehicle entry and exit still use native controls when no part is targeted.
 
-Width, height and front/rear balance controls remain available, with height now measured from the native lifted stance. Existing saved adjustments remain readable and are applied relative to that corrected baseline. No additional settings are introduced.
+Holding a turbo highlights compatible empty mounts on nearby engines at the turbo's native mounting pose. Superchargers use their own pose. Both use the game's type-specific attachment recipes; occupied nested hinges are excluded. Native forced-induction cleanup still runs when removing a turbo or supercharger.
 
-Validation: clean Release build and offline settings, stance and stock-suspension lifecycle checks passed, including original Rustallion lifted mount heights. No game launch was performed. Live Rustallion behavior awaits player confirmation.
+Validation: clean Release build and 13 focused picking/input/attachment-policy checks passed. The offline audit inspected 206 native removable-part collider layouts and 361 native attachment FSMs, including 16 forced-induction sockets. No game launch or interruption was performed; live behavior requires player confirmation after updating.
 
-Installation: extract the attached ZIP into BepInEx/plugins and restart. Remove older PartAdjustment.dll installations to avoid a duplicate plugin.
+Installation: extract UltimateTools-2.3.2.zip into BepInEx/plugins, replacing the existing UltimateTools folder, then restart. Remove older PartAdjustment.dll installations to avoid a duplicate plugin. Existing settings and saves remain compatible.

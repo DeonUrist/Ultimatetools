@@ -1,10 +1,10 @@
 # Ultimate Tools
 
-Ultimate Tools 2.3.1 is a BepInEx mod for Apocalypter. It combines the utility toolbox and Part Adjustment toolbox into one wrench/screwdriver toolset, with native-looking HUD text and the game's existing bindings.
+Ultimate Tools 2.3.2 is a BepInEx mod for Apocalypter. It combines the utility toolbox and Part Adjustment toolbox into one wrench/screwdriver toolset, with native-looking HUD text and the game's existing bindings.
 
 ## Install
 
-Install BepInEx first. Extract `UltimateTools-2.3.1.zip` into the game's `BepInEx/plugins` directory; it contains an `UltimateTools` folder. Restart the game.
+Install BepInEx first. Extract `UltimateTools-2.3.2.zip` into the game's `BepInEx/plugins` directory; it contains an `UltimateTools` folder. Restart the game.
 
 Remove older `PartAdjustment.dll` installations before installing. Ultimate Tools retains the same plugin GUID, assembly identity and save compatibility; installing both creates a duplicate plugin.
 
@@ -46,6 +46,10 @@ Pick up either toolbox. Both start in wrench mode. Labels follow rebound native 
 
 Part selection follows the camera-centre ray. Mounting and screwdriver socket selection can look through vehicle bodywork; scenery and foreground loose objects still block selection. Free lights and plates retain native contact-based attachment. Attached items use car axes; held items use global axes. Mounted wheel removal keeps the rolling hub's displayed pose. Tool-only vehicle entry/exit uses native controls; a real held part retains the native hand restriction.
 
+Mounted steering wheels, turbos and superchargers remain selectable through their native trigger colliders. Parts such as gear levers that disable their pickup collider when mounted receive a temporary copy of that native pickup shape only while the tool is out and hands are empty. These selection shapes never enable the original physics collider and are excluded from saves. Cassettes are removed by hand, not by the wrench. A removable part under the cursor takes F over an overlapping Drive trigger; otherwise native entry/exit remains available.
+
+Holding a turbo highlights compatible empty engine turbo mounts at their native mounting position, including the nested hinge. Superchargers use their own mounting pose. Native type-specific attachment recipes handle the actual mount and engine effects; occupied forced-induction hinges are not highlighted.
+
 ## Suspension
 
 Fit a suspension lift kit, select the displayed axle with the screwdriver, and press F.
@@ -80,6 +84,9 @@ Offline checks do not launch the game:
 dotnet run --project verification/settings/SettingsChecks.csproj -c Release
 dotnet run --project verification/stance/StanceChecks.csproj -c Release
 dotnet run --project verification/stock/StockChecks.csproj -c Release
+dotnet run --project verification/picking/PickingChecks.csproj -c Release
 ```
 
 2.3.1: clean Release build; settings, stance and stock-suspension lifecycle checks passed. Regression checks cover the original Rustallion front/rear lifted mount heights and manual height offsets. No game session was launched; the reported Rustallion behavior needs player confirmation after updating.
+
+2.3.2: clean Release build; 13 focused picking/input/attachment-policy checks passed. Offline audit covered collider layouts of 206 native removable-part prefabs and 361 native socket FSMs, including all 16 forced-induction dispatch sockets. No game session was launched or interrupted; live pickup and mounting require player confirmation after restarting.

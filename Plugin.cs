@@ -8,7 +8,7 @@ using UnityEngine.SceneManagement;
 
 namespace PartAdjustment
 {
-    [BepInPlugin(Guid, "Ultimate Tools", "2.3.1")]
+    [BepInPlugin(Guid, "Ultimate Tools", "2.3.2")]
     public sealed class Plugin : BaseUnityPlugin
     {
         public const string Guid = "com.denis.apocalypter.partadjustment";
@@ -49,7 +49,7 @@ namespace PartAdjustment
             new Harmony(Guid).PatchAll(typeof(Plugin).Assembly);
             SceneManager.sceneLoaded += (scene, mode) => { EnsureRunner(); ToolRunner.SceneChanged(); AdjustmentRunner.SceneChanged(); TailLights.SceneChanged(); };
             EnsureRunner();
-            Logger.LogInfo("Ultimate Tools 2.3.1 loaded. Lift kits retain native mount height; vertical alignment applies to the axle model.");
+            Logger.LogInfo("Ultimate Tools 2.3.2 loaded. Mounted trigger/colliderless parts are selectable; aimed parts take priority over Drive.");
         }
         private static void EnsureRunner()
         {

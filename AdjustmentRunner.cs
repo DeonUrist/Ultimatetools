@@ -29,7 +29,7 @@ namespace PartAdjustment
             PlayerCamera=go == null ? null : go.GetComponent<Camera>();
             UltimateTool.Tick(PlayerCamera);
             Hover=UltimateTool.Target == null ? null : UltimateTool.Target.transform;
-            HoverRemovable=ToolSelected && !UltimateTool.Screwdriver && !UltimateTool.Holding && Hover!=null && Hover.CompareTag("vehPart") && Find(Hover.gameObject,"de_Attach")!=null;
+            HoverRemovable=ToolSelected && !UltimateTool.Screwdriver && !UltimateTool.Holding && UltimateTool.CanDetach(UltimateTool.Target);
             if (!ToolSelected) { Stop(); return; }
             if (!Gameplay || Session==null) return;
             if (Controls.Pressed(Controls.Mode)) Session.Rotating=!Session.Rotating;

@@ -30,6 +30,9 @@ namespace PartAdjustment
         internal static bool NativeEditing => Active && Adjust != null && Adjust.ActiveStateName == "adjust";
         internal static bool Editing => AdjustmentRunner.Session != null || NativeEditing;
         internal static bool Holding => Held != null;
+        internal static bool AimedPart => CanDetach(Target) || (Screwdriver && (TargetHinge != null
+            || Target?.GetComponent<SuspensionPickTarget>()?.Adjustment?.KitFitted == true));
+        internal static bool DriveHasUse => ToolPickPolicy.GiveUseToDrive(DriveOffered, Holding, Editing, AimedPart);
         internal static string HeldId => Id(Held);
 
         internal static string Id(GameObject item) => item == null ? null : AdjustmentRunner.Find(item, "ID")?.FsmVariables.GetFsmString("ID")?.Value;
@@ -54,6 +57,7 @@ namespace PartAdjustment
             DriveOffered = Drive != null && (Drive.ActiveStateName == "over" || Drive.ActiveStateName == "over 2");
             if (!outNow)
             {
+                MountedPartPicking.Update(camera, false);
                 if (Active) { Finish(); SetAdjustmentMarkers(false); if (forcedAdjust && Adjust != null) Adjust.enabled = false; }
                 Active = false; forcedAdjust = false; Target = null; TargetHinge = TargetSlot = null;
                 if (camera.isActiveAndEnabled) RefreshSlots(camera); else HideMarkers();
@@ -63,7 +67,8 @@ namespace PartAdjustment
             Active = true;
             // Keep the adjustment FSM available even when the utility toolbox supplied the arm.
             if (Adjust != null && !Adjust.enabled) { Adjust.enabled = true; forcedAdjust = BoxOut(toolbox); }
-            if (!AdjustmentRunner.Gameplay || !camera.isActiveAndEnabled) { HideMarkers(); return; }
+            if (!AdjustmentRunner.Gameplay || !camera.isActiveAndEnabled) { MountedPartPicking.Update(camera, false); HideMarkers(); return; }
+            MountedPartPicking.Update(camera, !Driving && Held == null);
             if (Driving) { Finish(); HideMarkers(); Target = null; TargetHinge = TargetSlot = null; }
             else
             {
@@ -79,14 +84,14 @@ namespace PartAdjustment
             if (Driving) return; // Native DriveUse retains the complete exit/speed safety flow.
             if (Controls.Pressed(Controls.Use))
             {
-                if (DriveOffered && !Holding) { Finish(); return; }
+                if (DriveHasUse) { Finish(); return; }
                 ConsumedFrame = HeadlightMount.ConsumedUseFrame = Time.frameCount;
                 if (Editing) { Finish(); return; }
                 string id = Id(Target);
                 if (id == "Toolbox" || id == "PartAdjusterTools") { PutAway(); return; }
                 if (Screwdriver) BeginAdjust();
                 else if (Held != null) AttachHeld();
-                else if (Target != null && Target.CompareTag("vehPart") && AdjustmentRunner.Find(Target, "de_Attach") != null) DetachAndGrab(Target);
+                else if (CanDetach(Target)) DetachAndGrab(Target);
             }
             if (AdjustmentRunner.Session != null && !AdjustmentRunner.Session.Valid) AdjustmentRunner.Stop();
         }
@@ -101,10 +106,12 @@ namespace PartAdjustment
             // The rolling wheel hub can use a physics layer outside the normal item mask.
             var hits = Physics.RaycastAll(ray, reach, ~0, QueryTriggerInteraction.Collide);
             Array.Sort(hits, (a,b) => a.distance.CompareTo(b.distance));
+            var driveHit = default(RaycastHit);
             foreach (var hit in hits)
             {
                 var c = hit.collider;
                 if (c == null || (held != null && c.transform.IsChildOf(held.transform))) continue;
+                if (c.gameObject.layer == 7) { if (driveHit.collider == null) driveHit = hit; continue; }
                 var wheel = c.GetComponentInParent<NWH.WheelController3D.WheelController>();
                 if ((mask & (1 << c.gameObject.layer)) == 0 && wheel == null) continue;
                 var marker = c.GetComponentInParent<UltimateMountMarker>();
@@ -113,7 +120,10 @@ namespace PartAdjustment
                     if (held != null && Compatible(marker.Slot, held)) return hit;
                     continue;
                 }
-                if (c.transform.IsChildOf(camera.transform) || c.GetComponentInParent<UltimateTransient>() != null) continue;
+                if (c.transform.IsChildOf(camera.transform)) continue;
+                var partPick = c.GetComponent<MountedPartPickTarget>();
+                if (partPick != null) { if (CanDetach(partPick.Item)) return hit; continue; }
+                if (c.GetComponentInParent<UltimateTransient>() != null) continue;
                 // Adjustment hinges remain physical triggers even when their
                 // wrench visuals are hidden. They must not block wrench pickup.
                 if (!Screwdriver && c.gameObject.layer == 13)
@@ -121,10 +131,11 @@ namespace PartAdjustment
                     var suspension = c.GetComponentInParent<SuspensionPickTarget>();
                     if (held != null || suspension?.Adjustment?.FittedKit == null) continue;
                 }
-                if (c.isTrigger && c.gameObject.layer != 13 && c.gameObject.layer != 7 && wheel == null) continue;
+                if (c.isTrigger && !ToolPickPolicy.AcceptTrigger(c.gameObject.layer, wheel != null,
+                    CanDetach(HeadlightMount.ItemRoot(c.gameObject)))) continue;
                 return hit;
             }
-            return default(RaycastHit);
+            return driveHit;
         }
 
         private static void Pick(Camera camera)
@@ -264,7 +275,10 @@ namespace PartAdjustment
             foreach (var hit in hits)
             {
                 var c = hit.collider;
-                if (c == null || c.transform.IsChildOf(camera.transform) || c.GetComponentInParent<UltimateTransient>() != null) continue;
+                if (c == null || c.transform.IsChildOf(camera.transform)) continue;
+                var partPick = c.GetComponent<MountedPartPickTarget>();
+                if (partPick != null) { if (CanDetach(partPick.Item)) return hit; continue; }
+                if (c.GetComponentInParent<UltimateTransient>() != null) continue;
                 var suspension = c.GetComponentInParent<SuspensionPickTarget>();
                 if (suspension != null)
                 {
@@ -338,7 +352,17 @@ namespace PartAdjustment
             var body = item.GetComponent<Rigidbody>();
             if (body != null) { body.useGravity = false; body.velocity = Vector3.zero; body.angularVelocity = Vector3.zero; }
             Held = item;
+            MountedPartPicking.Update(AdjustmentRunner.PlayerCamera, false);
             Plugin.Log.LogInfo("Detached and grabbed " + item.name + " without changing its world pose.");
+        }
+
+        internal static bool CanDetach(GameObject item)
+        {
+            if (item == null || !item.activeInHierarchy || !item.CompareTag("vehPart") || !ToolPickPolicy.ToolRemoves(Id(item))) return false;
+            var detach = AdjustmentRunner.Find(item, "de_Attach");
+            var check = AdjustmentRunner.Find(item, "CheckTag");
+            return detach != null && detach.isActiveAndEnabled && check != null && check.isActiveAndEnabled
+                && check.Fsm.GetState("vehPartRemoved") != null;
         }
 
         internal static void CaptureHandPose(GameObject item, PlayMakerFSM grab)
@@ -356,15 +380,53 @@ namespace PartAdjustment
                 .Any(a => a.Enabled && a.compareTo != null && a.compareTo.Value == id);
         }
 
+        internal static string SlotAttachState(PlayMakerFSM slot)
+        {
+            if (slot == null) return null;
+            // Forced-induction sockets dispatch through Type to the native
+            // turbo/supercharger recipe instead of having an Attach state.
+            return ToolSlotPolicy.AttachState(slot.FsmStates.Select(s => s.Name));
+        }
+
+        internal static Transform SlotMount(PlayMakerFSM slot)
+        {
+            if (slot == null) return null;
+            if (SlotAttachState(slot) == "check type") return slot.transform.Find("hinge") ?? slot.transform;
+            return slot.transform;
+        }
+
+        internal static Vector3 SlotPoint(PlayMakerFSM slot, GameObject item)
+        {
+            var mount = SlotMount(slot);
+            if (mount == null) return Vector3.zero;
+            if (SlotAttachState(slot) == "check type" && item != null)
+            {
+                var type = AdjustmentRunner.Find(item, "Type")?.FsmVariables.GetFsmString("type")?.Value;
+                var pose = string.IsNullOrEmpty(type) ? null : slot.transform.Find(type + "_pos");
+                if (pose != null) return mount.TransformPoint(pose.localPosition);
+            }
+            return mount.position;
+        }
+
         internal static bool SuitableSlot(PlayMakerFSM slot)
         {
             if (slot == null || slot.FsmName != "vehPart_Attach" || !slot.isActiveAndEnabled
-                || slot.Fsm.GetState("Attach") == null) return false;
+                || SlotAttachState(slot) == null) return false;
             // Dashboard recipes accept multiple gauges; fixed sockets have a partAttached state.
             if (slot.Fsm.GetState("partAttached") != null)
-                foreach (Transform child in slot.transform) if (child.CompareTag("vehPart")) return false;
+                foreach (Transform child in SlotMount(slot)) if (child.CompareTag("vehPart")) return false;
             var state = slot.Fsm.GetState("checkID"); if (state == null) return false;
             return state.Actions.OfType<StringCompare>().Any(a => a.Enabled && a.compareTo != null && !string.IsNullOrEmpty(a.compareTo.Value));
+        }
+
+        internal static string SlotLabel(PlayMakerFSM slot, GameObject item)
+        {
+            if (SlotAttachState(slot) == "check type")
+            {
+                var type = AdjustmentRunner.Find(item, "Type")?.FsmVariables.GetFsmString("type")?.Value;
+                return type == "supercharger" ? "engine supercharger mount" : "engine turbo mount";
+            }
+            return Label(slot == null ? null : slot.gameObject);
         }
 
         internal static bool FreeSurface(out Transform parent, out Transform vehicle)
@@ -398,7 +460,8 @@ namespace PartAdjustment
             {
                 var item = Held;
                 TargetSlot.FsmVariables.GetFsmGameObject("Item").Value = item;
-                TargetSlot.Fsm.SetState("Attach");
+                TargetSlot.Fsm.SetState(SlotAttachState(TargetSlot));
+                TargetSlot.Fsm.UpdateStateChanges();
                 if (HeadlightMount.IsHeadlight(item))
                     AdjustmentRunner.Find(item, "Headlight")?.SendEvent(HeadlightMount.LightsOn(VehicleOf(TargetSlot.transform)) ? "HeadlightsON" : "HeadlightsOFF");
                 Held = null; return;
@@ -454,6 +517,7 @@ namespace PartAdjustment
         }
         internal static void PutAway()
         {
+            MountedPartPicking.Update(AdjustmentRunner.PlayerCamera, false);
             Finish();
             SetAdjustmentMarkers(false);
             if (BoxOut(toolbox)) toolbox.Fsm.SetState("offToolbox");
@@ -463,6 +527,7 @@ namespace PartAdjustment
         }
         internal static void Clear()
         {
+            MountedPartPicking.Clear();
             if (Active) SetAdjustmentMarkers(false);
             Finish(); Active = false; Held = Target = null; TargetHinge = TargetSlot = null;
             if (forcedAdjust && Adjust != null) Adjust.enabled = false;
