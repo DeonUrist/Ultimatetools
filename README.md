@@ -1,10 +1,10 @@
 # Ultimate Tools
 
-Ultimate Tools 2.3.2 is a BepInEx mod for Apocalypter. It combines the utility toolbox and Part Adjustment toolbox into one wrench/screwdriver toolset, with native-looking HUD text and the game's existing bindings.
+Ultimate Tools 2.3.3 is a BepInEx mod for Apocalypter. It combines the utility toolbox and Part Adjustment toolbox into one wrench/screwdriver toolset, with native-looking HUD text and the game's existing bindings.
 
 ## Install
 
-Install BepInEx first. Extract `UltimateTools-2.3.2.zip` into the game's `BepInEx/plugins` directory; it contains an `UltimateTools` folder. Restart the game.
+Install BepInEx first. Extract `UltimateTools-2.3.3.zip` into the game's `BepInEx/plugins` directory; it contains an `UltimateTools` folder. Restart the game.
 
 Remove older `PartAdjustment.dll` installations before installing. Ultimate Tools retains the same plugin GUID, assembly identity and save compatibility; installing both creates a duplicate plugin.
 
@@ -45,6 +45,8 @@ Pick up either toolbox. Both start in wrench mode. Labels follow rebound native 
 | X | Put the tool away |
 
 Part selection follows the camera-centre ray. Mounting and screwdriver socket selection can look through vehicle bodywork; scenery and foreground loose objects still block selection. Free lights and plates retain native contact-based attachment. Attached items use car axes; held items use global axes. Mounted wheel removal keeps the rolling hub's displayed pose. Tool-only vehicle entry/exit uses native controls; a real held part retains the native hand restriction.
+
+Screwdriver selection stops at the first eligible part or mount on that ray. Only one mount receives adjustment input. Finishing, switching tools or starting another adjustment deactivates the previous mount independently of the current cursor target.
 
 Mounted steering wheels, turbos and superchargers remain selectable through their native trigger colliders. Parts such as gear levers that disable their pickup collider when mounted receive a temporary copy of that native pickup shape only while the tool is out and hands are empty. These selection shapes never enable the original physics collider and are excluded from saves. Cassettes are removed by hand, not by the wrench. A removable part under the cursor takes F over an overlapping Drive trigger; otherwise native entry/exit remains available.
 

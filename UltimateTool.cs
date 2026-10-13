@@ -303,6 +303,8 @@ namespace PartAdjustment
 
         private static void BeginAdjust()
         {
+            NativeAdjustment.Stop();
+            ToolRunner.Active = null;
             if (Held != null) { AdjustmentRunner.Session = new AdjustmentSession(Held.transform); return; }
             if (Target == null) return;
             var suspension = Target.GetComponent<SuspensionPickTarget>();
@@ -322,6 +324,9 @@ namespace PartAdjustment
 
         internal static void Finish()
         {
+            // Stop the mount we activated, even if the hover changed or the
+            // native tool has already left its adjust state.
+            NativeAdjustment.Stop();
             UltimateAdjustmentHighlight.Clear();
             AdjustmentRunner.Stop();
             if (NativeEditing && Adjust != null) Adjust.Fsm.SetState("finish");

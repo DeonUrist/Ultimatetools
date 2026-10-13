@@ -1,9 +1,9 @@
-Ultimate Tools 2.3.2 fixes wrench removal of mounted steering wheels, turbos and superchargers. Native attached trigger colliders are accepted. Parts such as gear levers that disable their pickup collider while mounted receive temporary tool-only selection shapes using the original collider dimensions. Cassettes remain hand-only.
+Ultimate Tools 2.3.3 prevents a previously adjusted mount from moving alongside the next selected mount.
 
-Aimed removable parts now take priority over an overlapping Drive (F) trigger and display the correct tool hint. Normal vehicle entry and exit still use native controls when no part is targeted.
+The active native adjustment mount is retained independently of the cursor target. Finishing, switching tools, putting the tool away or starting another adjustment explicitly deactivates it. Other native mount FSMs cannot consume adjustment input while the tool is active. Suspension and held-part adjustment also release the previous native mount.
 
-Holding a turbo highlights compatible empty mounts on nearby engines at the turbo's native mounting pose. Superchargers use their own pose. Both use the game's type-specific attachment recipes; occupied nested hinges are excluded. Native forced-induction cleanup still runs when removing a turbo or supercharger.
+The cursor ray already stops at the first eligible part or mount. Selection through vehicle bodywork remains available; overlapping engine and radiator hits do not select multiple targets.
 
-Validation: clean Release build and 13 focused picking/input/attachment-policy checks passed. The offline audit inspected 206 native removable-part collider layouts and 361 native attachment FSMs, including 16 forced-induction sockets. No game launch or interruption was performed; live behavior requires player confirmation after updating.
+Validation: Release build passed with no warnings or errors. All 17 focused picking, attachment and exclusive-adjustment checks passed, including engine-to-radiator switching, finish and missing-target cleanup. Live behavior needs confirmation in game after restarting.
 
-Installation: extract UltimateTools-2.3.2.zip into BepInEx/plugins, replacing the existing UltimateTools folder, then restart. Remove older PartAdjustment.dll installations to avoid a duplicate plugin. Existing settings and saves remain compatible.
+Installation: extract UltimateTools-2.3.3.zip into BepInEx/plugins, replacing the existing UltimateTools folder, then restart. Existing settings and saves remain compatible.

@@ -21,17 +21,39 @@ namespace PartAdjustment
             if (__instance.sendEvent?.Name == "Activate")
             {
                 var picked = __instance.Fsm.Variables.GetFsmGameObject("Hinge")?.Value;
+                if (UltimateTool.Active)
+                {
+                    NativeAdjustment.Stop();
+                    if (!ToolRunner.Begin(__instance.Fsm, picked)) NativeAdjustment.Begin(picked);
+                    __instance.Finish();
+                    return false;
+                }
                 if (!ToolRunner.Begin(__instance.Fsm, picked)) return true;
                 __instance.Finish();
                 return false;
             }
-            if (__instance.sendEvent?.Name == "Deactivate" && ToolRunner.Active != null)
+            if (__instance.sendEvent?.Name == "Deactivate" && (UltimateTool.Active || NativeAdjustment.Active != null || ToolRunner.Active != null))
             {
+                NativeAdjustment.Stop();
                 ToolRunner.Active = null;
                 __instance.Finish();
                 return false;
             }
             return true;
+        }
+    }
+
+    [HarmonyPatch(typeof(GetButtonDown), nameof(GetButtonDown.OnUpdate))]
+    internal static class ExclusiveHingeInputPatch
+    {
+        private static bool Prefix(GetButtonDown __instance)
+        {
+            if (!UltimateTool.Active || __instance.Fsm?.Name != "AdjustHinge") return true;
+            if (UltimateTool.Screwdriver && UltimateTool.NativeEditing && NativeAdjustment.Active != null
+                && NativeAdjustment.Active.Fsm == __instance.Fsm) return true;
+            // A stale native hinge must never react alongside the selected mount.
+            if (__instance.storeResult != null) __instance.storeResult.Value = false;
+            return false;
         }
     }
 

@@ -3,5 +3,6 @@
   <ItemGroup>
     <Compile Include="../../ToolPickPolicy.cs" Link="ToolPickPolicy.cs" />
     <Compile Include="../../ToolSlotPolicy.cs" Link="ToolSlotPolicy.cs" />
+    <Compile Include="../../ExclusiveAdjustment.cs" Link="ExclusiveAdjustment.cs" />
   </ItemGroup>
 </Project>
