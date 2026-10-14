@@ -1,9 +1,9 @@
-Ultimate Tools 2.3.3 prevents a previously adjusted mount from moving alongside the next selected mount.
+Ultimate Tools 2.3.4 fixes suspension-kit bases sitting too low on Duke, Junker, PigPen, Rustallion, Vulture and Outrider.
 
-The active native adjustment mount is retained independently of the cursor target. Finishing, switching tools, putting the tool away or starting another adjustment explicitly deactivates it. Other native mount FSMs cannot consume adjustment input while the tool is active. Suspension and held-part adjustment also release the previous native mount.
+These cars now keep the suspension base and shields in their vanilla body pose. Screwdriver height and tilt move only the suspension axles, springs and physical wheel mounts. Bases that contain axles as children are handled correctly, and widening preserves the base's original dimensions. The three buggy suspension families retain their existing behavior.
 
-The cursor ray already stops at the first eligible part or mount. Selection through vehicle bodywork remains available; overlapping engine and radiator hits do not select multiple targets.
+Original prefab geometry overrides displaced base and axle baselines from older saves. Width, height and balance remain save-compatible. Physical wheel-mount Y remains native until the player adjusts height.
 
-Validation: Release build passed with no warnings or errors. All 17 focused picking, attachment and exclusive-adjustment checks passed, including engine-to-radiator switching, finish and missing-target cleanup. Live behavior needs confirmation in game after restarting.
+Validation: Release builds passed with no warnings or errors. All four offline check suites passed. Native Unity geometry checks exercised 89 original prefab transforms from all nine supported cars across widening, height, balance and reset, including stale saved geometry. The headless fixture run did not load a player save; driving and visual clearance still need player confirmation.
 
-Installation: extract UltimateTools-2.3.3.zip into BepInEx/plugins, replacing the existing UltimateTools folder, then restart. Existing settings and saves remain compatible.
+Installation: extract UltimateTools-2.3.4.zip into BepInEx/plugins, replacing the existing UltimateTools folder, then restart.

@@ -8,7 +8,7 @@ using UnityEngine.SceneManagement;
 
 namespace PartAdjustment
 {
-    [BepInPlugin(Guid, "Ultimate Tools", "2.3.3")]
+    [BepInPlugin(Guid, "Ultimate Tools", "2.3.4")]
     public sealed class Plugin : BaseUnityPlugin
     {
         public const string Guid = "com.denis.apocalypter.partadjustment";
@@ -49,7 +49,7 @@ namespace PartAdjustment
             new Harmony(Guid).PatchAll(typeof(Plugin).Assembly);
             SceneManager.sceneLoaded += (scene, mode) => { EnsureRunner(); ToolRunner.SceneChanged(); AdjustmentRunner.SceneChanged(); TailLights.SceneChanged(); };
             EnsureRunner();
-            Logger.LogInfo("Ultimate Tools 2.3.3 loaded. Mount adjustment has one exclusive active target.");
+            Logger.LogInfo("Ultimate Tools 2.3.4 loaded. Lifted suspension adjusts independently of the car base.");
         }
         private static void EnsureRunner()
         {

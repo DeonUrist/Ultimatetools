@@ -75,8 +75,6 @@ namespace PartAdjustment
             attachment = SuspensionSupport.EnabledFsm(hinge, "vehPart_Attach");
             suspensionCheck = SuspensionSupport.EnabledFsm(hinge, "checkSuspension");
             body = GetComponent<Rigidbody>();
-            var vehicle = name.Replace("(Clone)", "").Trim();
-            structure = new SuspensionStructure(model, vehicle);
             foreach (var wheel in wheels)
             {
                 var suspension = SuspensionSupport.EnabledFsm(wheel.transform, "Suspension");
@@ -86,6 +84,7 @@ namespace PartAdjustment
                     Suspension = suspension, Lifted = suspension?.ActiveStateName == "lifted" });
             }
             RestoreFactoryAssembly(KitFitted);
+            structure = new SuspensionStructure(model, factoryModel);
             stanceGeometry = new SuspensionStanceGeometry(transform, model, factoryModel);
             RefreshCenters();
             widthGeometry = new SuspensionWidthGeometry(model);
@@ -257,9 +256,13 @@ namespace PartAdjustment
             }
             model.localScale = new Vector3(modelScale.x * Width, modelScale.y, modelScale.z);
             float visualDrop = KitFitted ? SuspensionAlignmentDefaults.ModelDrop(buggyFamily) : 0f;
-            model.localPosition = modelPosition - Vector3.up * (RideHeight + visualDrop);
-            stanceGeometry.Apply(Balance);
-            structure.Apply(modelPosition, modelScale, Width);
+            // Buggy assemblies retain their existing alignment. Lifted car bases stay at
+            // their vanilla body pose; only their axles receive height/alignment offsets.
+            model.localPosition = buggyFamily ? modelPosition - Vector3.up * (RideHeight + visualDrop) : modelPosition;
+            structure.Apply(modelPosition, modelScale);
+            stanceGeometry.Apply(buggyFamily ? 0f : RideHeight + visualDrop, Balance, !buggyFamily);
+            // Shields nested under a moving axle also belong to the fixed body.
+            structure.Apply(modelPosition, modelScale);
             braces.ShowForWidth(Width);
             // Keep the native kit trigger with the assembly without stretching it.
             if (Hinge != null) Hinge.localPosition = hingePosition - Hinge.parent.InverseTransformVector(transform.TransformVector(Vector3.up * RideHeight));

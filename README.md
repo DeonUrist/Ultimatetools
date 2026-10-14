@@ -1,10 +1,10 @@
 # Ultimate Tools
 
-Ultimate Tools 2.3.3 is a BepInEx mod for Apocalypter. It combines the utility toolbox and Part Adjustment toolbox into one wrench/screwdriver toolset, with native-looking HUD text and the game's existing bindings.
+Ultimate Tools 2.3.4 is a BepInEx mod for Apocalypter. It combines the utility toolbox and Part Adjustment toolbox into one wrench/screwdriver toolset, with native-looking HUD text and the game's existing bindings.
 
 ## Install
 
-Install BepInEx first. Extract `UltimateTools-2.3.3.zip` into the game's `BepInEx/plugins` directory; it contains an `UltimateTools` folder. Restart the game.
+Install BepInEx first. Extract `UltimateTools-2.3.4.zip` into the game's `BepInEx/plugins` directory; it contains an `UltimateTools` folder. Restart the game.
 
 Remove older `PartAdjustment.dll` installations before installing. Ultimate Tools retains the same plugin GUID, assembly identity and save compatibility; installing both creates a duplicate plugin.
 
@@ -66,7 +66,7 @@ Fit a suspension lift kit, select the displayed axle with the screwdriver, and p
 
 Each end is limited to 15 cm from the native lifted stance. Front/rear balance allows up to 7.5 cm of opposite movement per end; combined limits prevent excessive lift. Axle meshes follow the physical wheel mounts and fixed underbody pieces retain their body pose. Width, height and balance save per vehicle. Removing the kit resets stance once and returns stock wheels to native control. Wrench mode can detach the fitted kit by aiming at the displayed axle.
 
-Accepted alignment is built in: the lifted family uses X −0.10 m per wheel side and lowers the axle model by 0.20 m; the buggy family uses X 0 and lowers the axle model by 0.10 m. Vertical alignment changes only the visible assembly, while fixed underbody pieces retain their body pose. A freshly fitted lift kit leaves physical wheel-mount Y at the game's native values, avoiding the former downward shift of the car body, particularly on Rustallion. Reset restores native ride height and preserves model alignment. No DEBUG calibration menu, rear mesh swapping or custom centre-of-mass change is enabled.
+Accepted alignment is built in: the lifted family uses X −0.10 m per wheel side and lowers only the visible axles by 0.20 m; the buggy family retains X 0 and its existing 0.10 m model alignment. Duke, Junker, PigPen, Rustallion, Vulture and Outrider keep their suspension bases and shields at the original prefab pose, including bases that parent the axles. Screwdriver height and balance move the axles, springs and physical wheel mounts relative to the fixed body. Widening preserves the base's original dimensions. Original prefab geometry takes precedence over displaced base/axle values in older saves. A freshly fitted lift kit leaves physical wheel-mount Y at the game's native values. Reset restores native ride height and preserves axle alignment. No DEBUG calibration menu, rear mesh swapping or custom centre-of-mass change is enabled.
 
 Supported cars: Duke, Junker, PigPen, Rustallion, Vulture, Outrider, PipeRat, Poloska and TinyTyrant. Disabled native truck suspension systems remain unsupported.
 
@@ -92,3 +92,5 @@ dotnet run --project verification/picking/PickingChecks.csproj -c Release
 2.3.1: clean Release build; settings, stance and stock-suspension lifecycle checks passed. Regression checks cover the original Rustallion front/rear lifted mount heights and manual height offsets. No game session was launched; the reported Rustallion behavior needs player confirmation after updating.
 
 2.3.2: clean Release build; 13 focused picking/input/attachment-policy checks passed. Offline audit covered collider layouts of 206 native removable-part prefabs and 361 native socket FSMs, including all 16 forced-induction dispatch sockets. No game session was launched or interrupted; live pickup and mounting require player confirmation after restarting.
+
+2.3.4: clean Release build; all four offline check suites passed. Headless native Unity regression checks used 89 original prefab transforms from all nine supported cars. Checks covered fixed base/shield position, orientation and dimensions; axle/spring height and balance; widening and reset; and ignoring displaced saved geometry when the prefab is available. Buggy-family geometry retained its previous behavior. The fixture run did not load a player save or verify a driven vehicle visually.

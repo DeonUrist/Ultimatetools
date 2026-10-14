@@ -13,7 +13,7 @@ using UnityEngine;
 
 [BepInPlugin("com.denis.ultimatetools.verifier", "Ultimate Tools Native Verifier", "1.0.0")]
 [BepInDependency(PartAdjustment.Plugin.Guid)]
-public sealed class UltimateVerifier : BaseUnityPlugin
+public sealed partial class UltimateVerifier : BaseUnityPlugin
 {
     const BindingFlags Hidden=BindingFlags.Static|BindingFlags.Instance|BindingFlags.NonPublic;
     Type tool;
@@ -45,6 +45,7 @@ public sealed class UltimateVerifier : BaseUnityPlugin
             Compatibility();
             DriveAndPutAway();
             PatchInstallation();
+            SuspensionGeometry();
             lines.Add("PASS: "+checks+" Ultimate Tools native Unity checks.");
         }
         catch(Exception e){lines.Add("ERROR: "+e);}
