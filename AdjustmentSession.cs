@@ -33,7 +33,7 @@ namespace PartAdjustment
         {
             if (!Valid || direction.sqrMagnitude == 0f) return;
             if (!Rotating) Target.position += reference * (direction * step);
-            else Target.rotation = PoseMath.Rotate(Target.rotation, reference, direction * step);
+            else Target.rotation = PoseMath.Rotate(Target.rotation, Plugin.AbsoluteAdjustmentRotation.Value ? reference : Target.rotation, direction * step);
         }
     }
 

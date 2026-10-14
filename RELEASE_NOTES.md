@@ -1,9 +1,7 @@
-Ultimate Tools 2.3.4 fixes suspension-kit bases sitting too low on Duke, Junker, PigPen, Rustallion, Vulture and Outrider.
+Ultimate Tools 2.3.5 fixes held-item rotation while the wrench or screwdriver is out.
 
-These cars now keep the suspension base and shields in their vanilla body pose. Screwdriver height and tilt move only the suspension axles, springs and physical wheel mounts. Bases that contain axles as children are handled correctly, and widening preserves the base's original dimensions. The three buggy suspension families retain their existing behavior.
+Rotating a held item with the middle mouse button now behaves exactly like without the tool (the game's own rotation). Before, the tool replaced it with its own rotation and the item turned around different axes.
 
-Original prefab geometry overrides displaced base and axle baselines from older saves. Width, height and balance remain save-compatible. Physical wheel-mount Y remains native until the player adjusts height.
+New setting General / AbsoluteAdjustmentRotation (default on): the screwdriver's rotate hotkeys turn an attached part around the car's axes, as before. Turn it off to rotate around the part's own axes. Existing settings files gain the entry automatically.
 
-Validation: Release builds passed with no warnings or errors. All four offline check suites passed. Native Unity geometry checks exercised 89 original prefab transforms from all nine supported cars across widening, height, balance and reset, including stale saved geometry. The headless fixture run did not load a player save; driving and visual clearance still need player confirmation.
-
-Installation: extract UltimateTools-2.3.4.zip into BepInEx/plugins, replacing the existing UltimateTools folder, then restart.
+Installation: extract UltimateTools-2.3.5.zip into BepInEx/plugins, replacing the existing UltimateTools folder, then restart.

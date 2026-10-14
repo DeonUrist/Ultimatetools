@@ -9,7 +9,7 @@ namespace PartAdjustment
     {
         private Text useText, title, mode, changeMode, buttons, reset;
         private string suffix, baseText, renderedText, toggleKey;
-        private bool stopping, removing, panelDirty = true, rotating;
+        private bool stopping, removing, panelDirty = true, rotating, absolute;
         private string useKey;
         private int referenceFrame;
         private KeyCode modifier, alternative;
@@ -91,7 +91,7 @@ namespace PartAdjustment
             if (panel == null) return;
             if (panel.activeSelf != (session != null)) panel.SetActive(session != null);
             if (session == null) return;
-            if (rotating != session.Rotating || referenceFrame != Plugin.ReferenceFrame
+            if (rotating != session.Rotating || referenceFrame != Plugin.ReferenceFrame || absolute != Plugin.AbsoluteAdjustmentRotation.Value
                 || modifier != Plugin.ModifierKey.Value || alternative != Plugin.ModifierAlternative) panelDirty = true;
             for (int i = 0; i < names.Length; i++)
             {
@@ -99,10 +99,10 @@ namespace PartAdjustment
                 if (bindings[i] != key) { bindings[i] = key; panelDirty = true; }
             }
             if (!panelDirty) return;
-            panelDirty = false; rotating = session.Rotating; referenceFrame = Plugin.ReferenceFrame;
+            panelDirty = false; rotating = session.Rotating; referenceFrame = Plugin.ReferenceFrame; absolute = Plugin.AbsoluteAdjustmentRotation.Value;
             modifier = Plugin.ModifierKey.Value; alternative = Plugin.ModifierAlternative;
             Set(title, "Adjust attached item");
-            Set(mode, (rotating ? "Rotation" : "Position") + " mode - " + (referenceFrame == 0 ? "car / global XYZ" : "global XYZ"));
+            Set(mode, (rotating ? "Rotation" : "Position") + " mode - " + (rotating && !absolute ? "part's own axes" : referenceFrame == 0 ? "car / global XYZ" : "global XYZ"));
             Set(changeMode, bindings[0] + " - change move / rotate mode");
             Set(buttons, bindings[1] + " / " + bindings[2] + (rotating ? " - rotate left / right\n" : " - move left / right\n")
                 + bindings[3] + " / " + bindings[4] + (rotating ? " - rotate forward / backward\n" : " - move up / down\n")

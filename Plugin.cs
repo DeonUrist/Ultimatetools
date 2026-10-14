@@ -8,12 +8,12 @@ using UnityEngine.SceneManagement;
 
 namespace PartAdjustment
 {
-    [BepInPlugin(Guid, "Ultimate Tools", "2.3.4")]
+    [BepInPlugin(Guid, "Ultimate Tools", "2.3.5")]
     public sealed class Plugin : BaseUnityPlugin
     {
         public const string Guid = "com.denis.apocalypter.partadjustment";
         internal static ManualLogSource Log;
-        internal static ConfigEntry<bool> Enabled, VisibleGizmosWithoutTool;
+        internal static ConfigEntry<bool> Enabled, VisibleGizmosWithoutTool, AbsoluteAdjustmentRotation;
         internal const float WidthStep = .025f, AttachmentReach = 5f;
         internal const int ReferenceFrame = 0;
         internal const KeyCode ModifierAlternative = KeyCode.None;
@@ -42,6 +42,7 @@ namespace PartAdjustment
             MovementRotationSpeed = Config.Bind("General", "MovementRotationSpeed", 100f, new ConfigDescription("Normal item movement/rotation speed in percent. 100% = 1 cm / 1 degree per press.", new AcceptableValueRange<float>(10f, 10000f)));
             FastMovementRotationSpeed = Config.Bind("General", "FastMovementRotationSpeed", 1000f, new ConfigDescription("Item movement/rotation speed with FastModifierKey held, in percent. 1000% = 10 cm / 10 degrees per press.", new AcceptableValueRange<float>(10f, 10000f)));
             ModifierKey = Config.Bind("General", "FastModifierKey", KeyCode.LeftAlt, "Hold for the fast movement/rotation speed. None disables the modifier.");
+            AbsoluteAdjustmentRotation = Config.Bind("General", "AbsoluteAdjustmentRotation", true, "On: the screwdriver's rotate hotkeys turn an attached part around the car's axes (a held part around the world axes). Off: around the part's own axes. Rotating a held item with the middle mouse button is always the game's own rotation.");
             AttachAnywhere = Config.Bind("Headlights", "AttachAnywhere", true, "With the Part Adjustment tool selected, a held headlight or tail light attaches anywhere on a car body (Use, normally F) and Use removes attached ones. Without the tool they only fit headlight slots; the utility tool removes them as usual.");
             TailLightChance = Config.Bind("Headlights", "TailLightChance", 8, new ConfigDescription("Chance in percent that a headlight spawned in the world (wrecks, caves, merchants) is a red tail light instead.", new AcceptableValueRange<int>(0, 100)));
             // Apocasetter hides this registration flag from the settings list.
@@ -49,7 +50,7 @@ namespace PartAdjustment
             new Harmony(Guid).PatchAll(typeof(Plugin).Assembly);
             SceneManager.sceneLoaded += (scene, mode) => { EnsureRunner(); ToolRunner.SceneChanged(); AdjustmentRunner.SceneChanged(); TailLights.SceneChanged(); };
             EnsureRunner();
-            Logger.LogInfo("Ultimate Tools 2.3.4 loaded. Lifted suspension adjusts independently of the car base.");
+            Logger.LogInfo("Ultimate Tools 2.3.5 loaded. Middle-mouse item rotation stays native with the tool out.");
         }
         private static void EnsureRunner()
         {

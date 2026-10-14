@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <AssemblyName>PartAdjustment</AssemblyName>
-    <Version>2.3.4</Version>
+    <Version>2.3.5</Version>
     <LangVersion>latest</LangVersion>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <GameDir Condition="'$(GameDir)' == ''">$(APOCALYPTER_GAME_DIR)</GameDir>

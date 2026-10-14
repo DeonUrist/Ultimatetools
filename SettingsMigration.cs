@@ -9,7 +9,7 @@ namespace PartAdjustment
     internal static class SettingsMigration
     {
         private static readonly string[] general = { "Enabled", "VisibleGizmosWithoutTool", "PutAwayWithKey", "PutAwayKey",
-            "MovementRotationSpeed", "FastMovementRotationSpeed", "FastModifierKey", "Apocasetter" };
+            "MovementRotationSpeed", "FastMovementRotationSpeed", "FastModifierKey", "AbsoluteAdjustmentRotation", "Apocasetter" };
         private static readonly string[] headlights = { "AttachAnywhere", "TailLightChance" };
 
         private static Dictionary<string, string> Read(string text)
@@ -55,6 +55,7 @@ namespace PartAdjustment
                 + "MovementRotationSpeed = " + Speed("General/MovementRotationSpeed", "Items/MovementStep", 100f) + "\n"
                 + "FastMovementRotationSpeed = " + Speed("General/FastMovementRotationSpeed", "Items/FastMovementStep", 1000f) + "\n"
                 + "FastModifierKey = " + Value("General/FastModifierKey", "LeftAlt", "Items/ModifierKey") + "\n"
+                + "AbsoluteAdjustmentRotation = " + Value("General/AbsoluteAdjustmentRotation", "true") + "\n"
                 + "Apocasetter = true\n\n[Headlights]\n"
                 + "AttachAnywhere = " + Value("Headlights/AttachAnywhere", "true") + "\n"
                 + "TailLightChance = " + Value("Headlights/TailLightChance", "8") + "\n";

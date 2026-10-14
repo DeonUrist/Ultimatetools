@@ -17,6 +17,9 @@ static class Program
         Check(upgraded.Contains("FastModifierKey = RightAlt") && upgraded.Contains("AttachAnywhere = false") && upgraded.Contains("TailLightChance = 23"), "preserve modifier and headlight preferences");
         Check(upgraded.Contains("MovementRotationSpeed = 100\n") && upgraded.Contains("FastMovementRotationSpeed = 1000\n"), "old speeds retain their exact baseline");
         Check(upgraded.Contains("VisibleGizmosWithoutTool = true") && !upgraded.Contains("ShowGuide") && !upgraded.Contains("[DEBUG]") && !upgraded.Contains("[Items]") && !upgraded.Contains("[Tools]"), "remove obsolete options and default passive highlights on");
+        Check(upgraded.Contains("AbsoluteAdjustmentRotation = true\n"), "absolute hotkey rotation defaults on");
+        Check(SettingsMigration.NeedsUpgrade(upgraded.Replace("AbsoluteAdjustmentRotation = true\n", "")), "2.3.4 config gains the rotation setting");
+        Check(!SettingsMigration.NeedsUpgrade(upgraded.Replace("AbsoluteAdjustmentRotation = true", "AbsoluteAdjustmentRotation = false")) && SettingsMigration.Upgrade(upgraded.Replace("AbsoluteAdjustmentRotation = true", "AbsoluteAdjustmentRotation = false")).Contains("AbsoluteAdjustmentRotation = false"), "rotation preference is kept");
         Check(SettingsMigration.Upgrade(upgraded) == upgraded, "migration does not change current preferences twice");
         Check(Near(ToolSettingsMath.Step(false,100f), .01f) && Near(ToolSettingsMath.Step(true,100f), 1f), "normal speed remains 1 cm and 1 degree");
         Check(Near(ToolSettingsMath.Step(false,1000f), .1f) && Near(ToolSettingsMath.Step(true,1000f), 10f), "fast speed remains 10 cm and 10 degrees");

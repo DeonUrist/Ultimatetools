@@ -1,10 +1,10 @@
 # Ultimate Tools
 
-Ultimate Tools 2.3.4 is a BepInEx mod for Apocalypter. It combines the utility toolbox and Part Adjustment toolbox into one wrench/screwdriver toolset, with native-looking HUD text and the game's existing bindings.
+Ultimate Tools 2.3.5 is a BepInEx mod for Apocalypter. It combines the utility toolbox and Part Adjustment toolbox into one wrench/screwdriver toolset, with native-looking HUD text and the game's existing bindings.
 
 ## Install
 
-Install BepInEx first. Extract `UltimateTools-2.3.4.zip` into the game's `BepInEx/plugins` directory; it contains an `UltimateTools` folder. Restart the game.
+Install BepInEx first. Extract `UltimateTools-2.3.5.zip` into the game's `BepInEx/plugins` directory; it contains an `UltimateTools` folder. Restart the game.
 
 Remove older `PartAdjustment.dll` installations before installing. Ultimate Tools retains the same plugin GUID, assembly identity and save compatibility; installing both creates a duplicate plugin.
 
@@ -21,6 +21,7 @@ Open **Mods → Ultimate Tools** in Apocasetter. The settings appear in this ord
 | MovementRotationSpeed | 100% |
 | FastMovementRotationSpeed | 1000% |
 | FastModifierKey | Left Alt |
+| AbsoluteAdjustmentRotation | On |
 
 | Headlights | Default |
 | --- | --- |
@@ -29,7 +30,7 @@ Open **Mods → Ultimate Tools** in Apocasetter. The settings appear in this ord
 
 While carrying an attachable car part near a car, compatible empty slots are highlighted even without the tool. Turn `VisibleGizmosWithoutTool` off to require the tool. No highlights are added for empty hands. Slot discovery runs at most once per second while a car part is held; only cached nearby markers update each frame. Passive markers have no active selection collider, so they do not intercept normal interactions. Occupied fixed sockets are excluded; multi-part sockets retain the native attachment recipe.
 
-Normal 100% speed is 1 cm / 1 degree per item-adjustment press. Fast 1000% speed is 10 cm / 10 degrees. Old settings are migrated to the compact General/Headlights layout; put-away, modifier and headlight preferences are retained. ShowGuide and the former extra settings are removed. A hidden `Apocasetter` registration flag is retained for the Mods menu.
+Normal 100% speed is 1 cm / 1 degree per item-adjustment press. Fast 1000% speed is 10 cm / 10 degrees. `AbsoluteAdjustmentRotation` on: screwdriver rotate hotkeys turn an attached part around the car's axes (a held part around the world axes); off: around the part's own axes. Old settings are migrated to the compact General/Headlights layout; put-away, modifier and headlight preferences are retained. ShowGuide and the former extra settings are removed. A hidden `Apocasetter` registration flag is retained for the Mods menu.
 
 ## Tool controls
 
@@ -44,7 +45,7 @@ Pick up either toolbox. Both start in wrench mode. Labels follow rebound native 
 | Left Alt | Fast item adjustment |
 | X | Put the tool away |
 
-Part selection follows the camera-centre ray. Mounting and screwdriver socket selection can look through vehicle bodywork; scenery and foreground loose objects still block selection. Free lights and plates retain native contact-based attachment. Attached items use car axes; held items use global axes. Mounted wheel removal keeps the rolling hub's displayed pose. Tool-only vehicle entry/exit uses native controls; a real held part retains the native hand restriction.
+Part selection follows the camera-centre ray. Mounting and screwdriver socket selection can look through vehicle bodywork; scenery and foreground loose objects still block selection. Free lights and plates retain native contact-based attachment. Screwdriver hotkeys move attached items along car axes and held items along global axes; rotation follows `AbsoluteAdjustmentRotation`. Rotating a held item with the middle mouse button is always the native rotation, with or without the tool. Mounted wheel removal keeps the rolling hub's displayed pose. Tool-only vehicle entry/exit uses native controls; a real held part retains the native hand restriction.
 
 Screwdriver selection stops at the first eligible part or mount on that ray. Only one mount receives adjustment input. Finishing, switching tools or starting another adjustment deactivates the previous mount independently of the current cursor target.
 
@@ -92,5 +93,7 @@ dotnet run --project verification/picking/PickingChecks.csproj -c Release
 2.3.1: clean Release build; settings, stance and stock-suspension lifecycle checks passed. Regression checks cover the original Rustallion front/rear lifted mount heights and manual height offsets. No game session was launched; the reported Rustallion behavior needs player confirmation after updating.
 
 2.3.2: clean Release build; 13 focused picking/input/attachment-policy checks passed. Offline audit covered collider layouts of 206 native removable-part prefabs and 361 native socket FSMs, including all 16 forced-induction dispatch sockets. No game session was launched or interrupted; live pickup and mounting require player confirmation after restarting.
+
+2.3.5: middle-mouse rotation of a held item no longer changes while the wrench or screwdriver is out; new `AbsoluteAdjustmentRotation` setting for the rotate hotkeys. Settings checks passed; not yet confirmed in game.
 
 2.3.4: clean Release build; all four offline check suites passed. Headless native Unity regression checks used 89 original prefab transforms from all nine supported cars. Checks covered fixed base/shield position, orientation and dimensions; axle/spring height and balance; widening and reset; and ignoring displaced saved geometry when the prefab is available. Buggy-family geometry retained its previous behavior. The fixture run did not load a player save or verify a driven vehicle visually.
