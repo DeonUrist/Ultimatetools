@@ -1,10 +1,10 @@
 # Ultimate Tools
 
-Ultimate Tools 2.3.5 is a BepInEx mod for Apocalypter. It combines the utility toolbox and Part Adjustment toolbox into one wrench/screwdriver toolset, with native-looking HUD text and the game's existing bindings.
+Ultimate Tools 2.3.6 is a BepInEx mod for Apocalypter. It combines the utility toolbox and Part Adjustment toolbox into one wrench/screwdriver toolset, with native-looking HUD text and the game's existing bindings.
 
 ## Install
 
-Install BepInEx first. Extract `UltimateTools-2.3.5.zip` into the game's `BepInEx/plugins` directory; it contains an `UltimateTools` folder. Restart the game.
+Install BepInEx first. Extract `UltimateTools-2.3.6.zip` into the game's `BepInEx/plugins` directory; it contains an `UltimateTools` folder. Restart the game.
 
 Remove older `PartAdjustment.dll` installations before installing. Ultimate Tools retains the same plugin GUID, assembly identity and save compatibility; installing both creates a duplicate plugin.
 
@@ -89,6 +89,16 @@ dotnet run --project verification/stance/StanceChecks.csproj -c Release
 dotnet run --project verification/stock/StockChecks.csproj -c Release
 dotnet run --project verification/picking/PickingChecks.csproj -c Release
 ```
+
+Tail light spawn regression checks run native PlayMaker actions in a separate headless game copy under `research/tail-light-runtime`:
+
+```powershell
+.\verification\native\RunTailLights.ps1 -GameDir 'C:\Path\To\Apocalypter'
+```
+
+The checks cover all three headlight variants at 100%, 0%, shared and separate spawn variables, preservation of the source prefab and unique names, and exclusion of other items and non-spawner actions. No player save is loaded. The spawn fix preserves the prefab before vanilla `CreateObject` overwrites its shared input/output variable; previously every such spawn was rejected before the chance roll. This affects newly spawned world loot; existing saved headlights retain their type.
+
+2.3.6: clean Release build; 26 focused native Unity checks passed for tail light spawning. The same regression fails against the previous spawn code. Existing saved headlights retain their type.
 
 2.3.1: clean Release build; settings, stance and stock-suspension lifecycle checks passed. Regression checks cover the original Rustallion front/rear lifted mount heights and manual height offsets. No game session was launched; the reported Rustallion behavior needs player confirmation after updating.
 

@@ -226,11 +226,10 @@ namespace PartAdjustment
         }
 
         // ---- world loot ----
-        internal static void Created(CreateObject action)
+        internal static void Created(CreateObject action, GameObject source)
         {
             int chance = Plugin.TailLightChance.Value;
             if (chance <= 0) return;
-            var source = action.gameObject?.Value;
             if (source == null || !source.name.StartsWith(Base, StringComparison.Ordinal)) return;
             var owner = action.Owner;
             bool spawner = (action.Fsm?.Name ?? "").IndexOf("Spawn", StringComparison.OrdinalIgnoreCase) >= 0
@@ -238,7 +237,7 @@ namespace PartAdjustment
             if (!spawner) return;
             var made = action.storeObject?.Value;
             if (made == null || made == source || !made.name.StartsWith(Base, StringComparison.Ordinal) || !HeadlightMount.IsHeadlight(made)) return;
-            if (UnityEngine.Random.value * 100f >= chance) return;
+            if (chance < 100 && UnityEngine.Random.value * 100f >= chance) return;
             made.name = TailName(made.name);
             spawned.Add(made);
             Convert(made);
@@ -273,9 +272,17 @@ namespace PartAdjustment
     [HarmonyPatch(typeof(CreateObject), nameof(CreateObject.OnEnter))]
     internal static class TailLightSpawnPatch
     {
-        private static void Postfix(CreateObject __instance)
+        // Vanilla spawners use {Item} for BOTH gameObject and storeObject. Preserve the
+        // prefab before OnEnter replaces that variable with the clone, or Created sees
+        // source == made and rejects every spawn before the chance roll.
+        private static void Prefix(CreateObject __instance, out GameObject __state)
         {
-            try { TailLights.Created(__instance); }
+            __state = __instance.gameObject?.Value;
+        }
+
+        private static void Postfix(CreateObject __instance, GameObject __state)
+        {
+            try { TailLights.Created(__instance, __state); }
             catch (Exception e) { Plugin.Log.LogError("Tail light spawn: " + e); }
         }
     }

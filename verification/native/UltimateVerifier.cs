@@ -40,6 +40,12 @@ public sealed partial class UltimateVerifier : BaseUnityPlugin
             tool=typeof(PartAdjustment.Plugin).Assembly.GetType("PartAdjustment.UltimateTool");
             Check(tool!=null,"new controller loaded");
             Check(typeof(PartAdjustment.Plugin).Assembly.GetName().Version.Major==2,"production assembly version");
+            TailLightSpawning();
+            if(Environment.GetCommandLineArgs().Contains("-ultimate-tools-tail-lights"))
+            {
+                lines.Add("PASS: "+checks+" tail light native Unity checks.");
+                yield break;
+            }
             RaySelection();
             DetachAndAdjust();
             Compatibility();

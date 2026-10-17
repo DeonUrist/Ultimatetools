@@ -1,7 +1,9 @@
-Ultimate Tools 2.3.5 fixes held-item rotation while the wrench or screwdriver is out.
+Ultimate Tools 2.3.6 fixes red tail lights never appearing in world loot, even with TailLightChance set to 100%.
 
-Rotating a held item with the middle mouse button now behaves exactly like without the tool (the game's own rotation). Before, the tool replaced it with its own rotation and the item turned around different axes.
+Newly spawned headlights now follow the configured chance for all three headlight variants. At 100%, every eligible newly spawned headlight becomes a red tail light; at 0%, they remain white. Existing saved headlights keep their current type.
 
-New setting General / AbsoluteAdjustmentRotation (default on): the screwdriver's rotate hotkeys turn an attached part around the car's axes, as before. Turn it off to rotate around the part's own axes. Existing settings files gain the entry automatically.
+The game reuses one variable for the source prefab and the spawned item. Ultimate Tools previously mistook them for the same object and skipped conversion before rolling the chance. The fix preserves the source before spawning.
 
-Installation: extract UltimateTools-2.3.5.zip into BepInEx/plugins, replacing the existing UltimateTools folder, then restart.
+Installation: extract UltimateTools-2.3.6.zip into BepInEx/plugins, replacing the existing UltimateTools folder, then restart.
+
+Validation: Release build passed with zero warnings and errors. All four offline suites passed: settings, stance, stock suspension, and picking/attachment. All 26 focused native Unity checks passed, covering the three light variants, 100% and 0%, shared and separate spawn variables, unique names, source prefab preservation, and unrelated spawn actions. The original spawn code fails the regression. No player save was loaded.
