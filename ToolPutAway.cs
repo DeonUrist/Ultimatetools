@@ -32,8 +32,19 @@ namespace PartAdjustment
                 if (fsm == null || !fsm.isActiveAndEnabled) continue;
                 var state = fsm.ActiveStateName;
                 if (state != "off 2" && state != "over 2") continue;   // "off 2"/"over 2" = this tool is in the hands
+                DropHeldItem(AdjustmentRunner.Find(camera, "GrabItem"));
                 fsm.Fsm.SetState("offToolbox");
             }
+        }
+
+        internal static void DropHeldItem(PlayMakerFSM grab)
+        {
+            // Item also holds the hovered object while idle. Only release a real grab,
+            // including rotate/scroll states, before the tool's OffItem actions run.
+            if (grab == null || !grab.isActiveAndEnabled || !UltimateTool.InHandState(grab.ActiveStateName)
+                || grab.FsmVariables.GetFsmGameObject("Item")?.Value == null) return;
+            grab.Fsm.SetState("Drop");
+            grab.Fsm.UpdateStateChanges();
         }
 
         private void OnDestroy() { owner = null; }

@@ -49,6 +49,8 @@ namespace PartAdjustment
             internal bool Lifted;
             internal bool Front;
             internal WheelController Controller;
+            internal Damper Damper;
+            internal readonly SuspensionDamping Damping = new SuspensionDamping();
         }
 
         internal static SuspensionAdjustment Ensure(Transform car)
@@ -80,7 +82,7 @@ namespace PartAdjustment
                 var suspension = SuspensionSupport.EnabledFsm(wheel.transform, "Suspension");
                 mounts.Add(new Mount { Transform = wheel.transform,
                     Baseline = KitFitted ? VanillaPosition(wheel.transform) : wheel.transform.localPosition,
-                    Controller = wheel, Front = wheel.name.Contains("_F"),
+                    Controller = wheel, Damper = wheel.damper, Front = wheel.name.Contains("_F"),
                     Suspension = suspension, Lifted = suspension?.ActiveStateName == "lifted" });
             }
             RestoreFactoryAssembly(KitFitted);
@@ -237,9 +239,9 @@ namespace PartAdjustment
 
         internal void Apply()
         {
-            if (!Supported()) return;
+            if (!Supported()) { UpdateDamping(false); return; }
             var update = ownership.BeginApply(KitFitted, Width != 1f || RideHeight != 0f || Balance != 0f);
-            if (update == SuspensionUpdate.None) return;
+            if (update == SuspensionUpdate.None) { UpdateDamping(false); return; }
             if (update == SuspensionUpdate.RestoreStock)
             {
                 Width = 1f;
@@ -267,12 +269,38 @@ namespace PartAdjustment
             // Keep the native kit trigger with the assembly without stretching it.
             if (Hinge != null) Hinge.localPosition = hingePosition - Hinge.parent.InverseTransformVector(transform.TransformVector(Vector3.up * RideHeight));
             foreach (var mount in mounts) ApplyMount(mount);
+            UpdateDamping(true);
             if (body != null) body.WakeUp();
         }
 
         private void FixedUpdate()
         {
-            if (ready && lastKit != KitFitted) { lastKit = KitFitted; Apply(); }
+            if (!ready) return;
+            if (lastKit != KitFitted) { lastKit = KitFitted; Apply(); }
+            else UpdateDamping(Supported());
+        }
+
+        private void UpdateDamping(bool supported)
+        {
+            bool active = supported && isActiveAndEnabled && Plugin.Enabled.Value && KitFitted;
+            foreach (var mount in mounts)
+            {
+                var wheel = mount.Controller;
+                if (wheel == null) continue;
+                if (!ReferenceEquals(mount.Damper, wheel.damper))
+                {
+                    // A replaced damper is an external edit until a native state completes again.
+                    mount.Damper = wheel.damper;
+                    mount.Damping.ExternalChanged();
+                }
+                if (wheel.damper == null) continue;
+                float bump, rebound;
+                if (!mount.Damping.Update(wheel.DamperBumpRate, wheel.DamperReboundRate,
+                    SuspensionDamping.Fraction(RideHeight, Balance, mount.Front), active && mount.Lifted,
+                    out bump, out rebound)) continue;
+                wheel.DamperBumpRate = bump;
+                wheel.DamperReboundRate = rebound;
+            }
         }
 
         internal void WriteSaveVariables(FsmVariables variables)
@@ -352,6 +380,11 @@ namespace PartAdjustment
             if (mount == null) return;
             mount.Baseline = wheel.localPosition;
             mount.Lifted = state == "lifted";
+            if (mount.Controller != null && mount.Controller.damper != null)
+            {
+                mount.Damper = mount.Controller.damper;
+                mount.Damping.NativeChanged(mount.Controller.DamperBumpRate, mount.Controller.DamperReboundRate);
+            }
             RefreshCenters();
             Apply();
         }
@@ -381,8 +414,11 @@ namespace PartAdjustment
             }
         }
 
+        private void OnDisable() => UpdateDamping(false);
+
         private void OnDestroy()
         {
+            UpdateDamping(false);
             indicators?.Destroy();
             All.Remove(this);
             Revision++;

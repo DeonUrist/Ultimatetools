@@ -524,6 +524,8 @@ namespace PartAdjustment
         {
             MountedPartPicking.Update(AdjustmentRunner.PlayerCamera, false);
             Finish();
+            ToolPutAway.DropHeldItem(Grab);
+            Held = null;
             SetAdjustmentMarkers(false);
             if (BoxOut(toolbox)) toolbox.Fsm.SetState("offToolbox");
             if (BoxOut(adjustBox)) adjustBox.Fsm.SetState("offToolbox");

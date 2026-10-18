@@ -8,7 +8,7 @@ using UnityEngine.SceneManagement;
 
 namespace PartAdjustment
 {
-    [BepInPlugin(Guid, "Ultimate Tools", "2.3.6")]
+    [BepInPlugin(Guid, "Ultimate Tools", "2.3.7")]
     public sealed class Plugin : BaseUnityPlugin
     {
         public const string Guid = "com.denis.apocalypter.partadjustment";
@@ -50,7 +50,7 @@ namespace PartAdjustment
             new Harmony(Guid).PatchAll(typeof(Plugin).Assembly);
             SceneManager.sceneLoaded += (scene, mode) => { EnsureRunner(); ToolRunner.SceneChanged(); AdjustmentRunner.SceneChanged(); TailLights.SceneChanged(); };
             EnsureRunner();
-            Logger.LogInfo("Ultimate Tools 2.3.6 loaded. World tail light spawning respects TailLightChance.");
+            Logger.LogInfo("Ultimate Tools 2.3.7 loaded. Raised suspension uses progressive damping; putting tools away drops held items.");
         }
         private static void EnsureRunner()
         {

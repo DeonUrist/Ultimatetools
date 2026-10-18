@@ -40,6 +40,18 @@ public sealed partial class UltimateVerifier : BaseUnityPlugin
             tool=typeof(PartAdjustment.Plugin).Assembly.GetType("PartAdjustment.UltimateTool");
             Check(tool!=null,"new controller loaded");
             Check(typeof(PartAdjustment.Plugin).Assembly.GetName().Version.Major==2,"production assembly version");
+            if(Environment.GetCommandLineArgs().Contains("-ultimate-tools-put-away"))
+            {
+                PutAwayDrops();
+                lines.Add("PASS: "+checks+" put-away native Unity checks.");
+                yield break;
+            }
+            ProgressiveDamping();
+            if(Environment.GetCommandLineArgs().Contains("-ultimate-tools-damping"))
+            {
+                lines.Add("PASS: "+checks+" progressive damping native Unity checks.");
+                yield break;
+            }
             TailLightSpawning();
             if(Environment.GetCommandLineArgs().Contains("-ultimate-tools-tail-lights"))
             {
@@ -49,7 +61,8 @@ public sealed partial class UltimateVerifier : BaseUnityPlugin
             RaySelection();
             DetachAndAdjust();
             Compatibility();
-            DriveAndPutAway();
+            DriveHandRestrictions();
+            PutAwayDrops();
             PatchInstallation();
             SuspensionGeometry();
             lines.Add("PASS: "+checks+" Ultimate Tools native Unity checks.");
@@ -171,7 +184,7 @@ public sealed partial class UltimateVerifier : BaseUnityPlugin
         id.Fsm.Variables.GetFsmString("ID").Value="headlight";
         Check(!(bool)Call("Compatible",slot,item),"incompatible item does not offer radiator socket");
     }
-    void DriveAndPutAway()
+    void DriveHandRestrictions()
     {
         Field("Active",true);Field("Held",null);
         var go=Node("DriveHost",Vector3.zero);var f=Fsm(go,"DriveUse","Idle","checkHand","checkHand 2","enter","exit","blocked");
@@ -183,11 +196,6 @@ public sealed partial class UltimateVerifier : BaseUnityPlugin
         StartFsm(f);f.Fsm.SetState("checkHand");Check(f.ActiveStateName=="enter","tool out does not block native car entry");
         f.Fsm.SetState("checkHand 2");Check(f.ActiveStateName=="exit","tool out does not block native car exit");
         Field("Held",item);f.Fsm.SetState("checkHand");Check(f.ActiveStateName=="blocked","real held part retains native hand restriction");
-        var box=Fsm(go,"UseToolbox","off 2","offToolbox","off");StartFsm(box);Field("toolbox",box);Field("Active",true);
-        var p=item.transform.position;Call("PutAway");
-        Check(box.ActiveStateName=="offToolbox","X path uses native tool put-away");
-        Check(!(bool)tool.GetField("Active",Hidden).GetValue(null),"put-away disables unified tool");
-        Check((item.transform.position-p).sqrMagnitude<.000001f && grab.ActiveStateName=="ItemInHand","put-away preserves grabbed part");
     }
     void PatchInstallation()
     {

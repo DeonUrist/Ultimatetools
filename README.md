@@ -1,10 +1,10 @@
 # Ultimate Tools
 
-Ultimate Tools 2.3.6 is a BepInEx mod for Apocalypter. It combines the utility toolbox and Part Adjustment toolbox into one wrench/screwdriver toolset, with native-looking HUD text and the game's existing bindings.
+Ultimate Tools 2.3.7 is a BepInEx mod for Apocalypter. It combines the utility toolbox and Part Adjustment toolbox into one wrench/screwdriver toolset, with native-looking HUD text and the game's existing bindings. Putting the tool away safely drops held items.
 
 ## Install
 
-Install BepInEx first. Extract `UltimateTools-2.3.6.zip` into the game's `BepInEx/plugins` directory; it contains an `UltimateTools` folder. Restart the game.
+Install BepInEx first. Extract `UltimateTools-2.3.7.zip` into the game's `BepInEx/plugins` directory; it contains an `UltimateTools` folder. Restart the game.
 
 Remove older `PartAdjustment.dll` installations before installing. Ultimate Tools retains the same plugin GUID, assembly identity and save compatibility; installing both creates a duplicate plugin.
 
@@ -43,7 +43,9 @@ Pick up either toolbox. Both start in wrench mode. Labels follow rebound native 
 | F, screwdriver | Begin/finish adjustment |
 | Native Adjust bindings | Move, rotate, change submode and reset |
 | Left Alt | Fast item adjustment |
-| X | Put the tool away |
+| X | Drop any held item and put the tool away |
+
+Putting the tool away releases a held item at its current position with native collisions, gravity and vehicle velocity restored. This also works while rotating or moving the item with the scroll wheel.
 
 Part selection follows the camera-centre ray. Mounting and screwdriver socket selection can look through vehicle bodywork; scenery and foreground loose objects still block selection. Free lights and plates retain native contact-based attachment. Screwdriver hotkeys move attached items along car axes and held items along global axes; rotation follows `AbsoluteAdjustmentRotation`. Rotating a held item with the middle mouse button is always the native rotation, with or without the tool. Mounted wheel removal keeps the rolling hub's displayed pose. Tool-only vehicle entry/exit uses native controls; a real held part retains the native hand restriction.
 
@@ -67,6 +69,8 @@ Fit a suspension lift kit, select the displayed axle with the screwdriver, and p
 
 Each end is limited to 15 cm from the native lifted stance. Front/rear balance allows up to 7.5 cm of opposite movement per end; combined limits prevent excessive lift. Axle meshes follow the physical wheel mounts and fixed underbody pieces retain their body pose. Width, height and balance save per vehicle. Removing the kit resets stance once and returns stock wheels to native control. Wrench mode can detach the fitted kit by aiming at the displayed axle.
 
+Suspension damping decreases gradually as each axle rises above the native lift-kit height. Both bump and rebound retain 100% of their native rates at zero added height, 75% at +5 cm, 50% at +10 cm, and 25% at +15 cm, with a continuous linear change between those points. Front/rear balance counts toward each axle's height independently. Lowered axles retain native damping. Resetting height, removing the kit, or disabling the mod restores damping still controlled by Ultimate Tools. Saved height and balance automatically reproduce the curve after loading. Spring strength and travel stay native. If another mod changes an adjusted damper, Ultimate Tools yields control until the game's suspension state is configured again. Disable DukeDamperTrial when testing this feature to avoid applying two damping reductions.
+
 Accepted alignment is built in: the lifted family uses X −0.10 m per wheel side and lowers only the visible axles by 0.20 m; the buggy family retains X 0 and its existing 0.10 m model alignment. Duke, Junker, PigPen, Rustallion, Vulture and Outrider keep their suspension bases and shields at the original prefab pose, including bases that parent the axles. Screwdriver height and balance move the axles, springs and physical wheel mounts relative to the fixed body. Widening preserves the base's original dimensions. Original prefab geometry takes precedence over displaced base/axle values in older saves. A freshly fitted lift kit leaves physical wheel-mount Y at the game's native values. Reset restores native ride height and preserves axle alignment. No DEBUG calibration menu, rear mesh swapping or custom centre-of-mass change is enabled.
 
 Supported cars: Duke, Junker, PigPen, Rustallion, Vulture, Outrider, PipeRat, Poloska and TinyTyrant. Disabled native truck suspension systems remain unsupported.
@@ -81,6 +85,14 @@ dotnet build UltimateTools.csproj -c Release "-p:GameDir=C:\Path\To\Apocalypter"
 
 Output: `bin/Release/UltimateTools.dll`. The project requires .NET SDK and the .NET Framework 4.7.2 targeting pack.
 
+Put-away regression checks run in an isolated headless game copy without loading a player save:
+
+```powershell
+.\verification\native\RunPutAway.ps1 -GameDir 'C:\Path\To\Apocalypter'
+```
+
+All 110 focused native Unity checks passed for dropping before holster, both toolboxes, normal/rotate/scroll states, native release events and physics, world pose, stale held-item caches and empty hands. The full native suite passed 2,330 checks.
+
 Offline checks do not launch the game:
 
 ```powershell
@@ -88,7 +100,16 @@ dotnet run --project verification/settings/SettingsChecks.csproj -c Release
 dotnet run --project verification/stance/StanceChecks.csproj -c Release
 dotnet run --project verification/stock/StockChecks.csproj -c Release
 dotnet run --project verification/picking/PickingChecks.csproj -c Release
+dotnet run --project verification/damping/DampingChecks.csproj -c Release
 ```
+
+Progressive damping checks against actual NWH components run in an isolated headless game copy without loading a player save:
+
+```powershell
+.\verification\native\RunDamping.ps1 -GameDir 'C:\Path\To\Apocalypter'
+```
+
+2.3.7: clean Release build; all five offline suites passed, including 179 damping checks. All 20 focused native Unity checks passed for the progressive curve, per-axle balance, repeated updates, reset, kit removal/refit, disable/re-enable, external changes and native stock rates. Driving feel and reduction of shaking at high lift require player confirmation.
 
 Tail light spawn regression checks run native PlayMaker actions in a separate headless game copy under `research/tail-light-runtime`:
 
