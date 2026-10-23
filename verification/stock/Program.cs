@@ -19,15 +19,6 @@ static class Program
             if (Math.Abs(SuspensionStanceMath.MountY(nativeY, .02f, 0f, front) - (nativeY - .02f)) > .000001f)
                 throw new Exception("manual lift changes native height only by the requested amount");
         }
-        foreach (bool buggy in new[] { false, true })
-        {
-            float drop = SuspensionAlignmentDefaults.ModelDrop(buggy);
-            // Previously both sides of this wheel/model difference included a wheel +Y offset.
-            float oldDifference = -.4f + drop - (-.3f);
-            float newDifference = -.4f - (-.3f - drop);
-            if (Math.Abs(oldDifference - newDifference) > .000001f)
-                throw new Exception("moving model preserves the accepted relative vertical alignment");
-        }
         var stock = new SuspensionOwnership();
         for (int i = 0; i < 100; i++)
             Check(stock, false, false, SuspensionUpdate.None, "stock spawn, load and native wheel callbacks remain passive");

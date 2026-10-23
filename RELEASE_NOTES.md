@@ -1,3 +1,13 @@
+# 2.3.8 — Manual suspension only
+
+Removed built-in 20 cm car / 10 cm buggy suspension drops, automatic lateral wheel calibration, and progressive damping changes. Zero adjustment and Reset now retain vanilla suspension geometry, wheel spacing, damping and spring settings. The alignment tool still widens, raises/lowers and balances suspension; explicit per-car settings continue to save and load. Other tool behavior is unchanged.
+
+Installation: extract UltimateTools-2.3.8.zip into BepInEx/plugins, replacing the existing UltimateTools folder, then restart the game.
+
+Validation: Release build passed with zero warnings and errors. All 2,219 native Unity suspension checks and all four offline suites passed. Native checks cover nine vanilla vehicle geometries, manual width/height/balance, Reset, kit removal and unchanged damping/travel; no player save was opened. Actual driving still needs player testing.
+
+# 2.3.7 — Held-item drop fix and suspension damping
+
 Ultimate Tools 2.3.7 fixes held items disappearing when putting the tool away and adds progressive damping for raised suspension to address shaking at high ride heights.
 
 Pressing X now drops a held item at its current position before putting away the wrench or screwdriver. The native drop sequence restores collisions, gravity and inherited vehicle velocity. Rotation and scroll movement are covered, and empty hands leave nearby items alone. Using a toolbox to put the tool away follows the same drop behavior.

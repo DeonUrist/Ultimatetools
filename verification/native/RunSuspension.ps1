@@ -2,7 +2,7 @@ param([string]$GameDir='E:\SteamLibrary\steamapps\common\Apocalypter')
 $ErrorActionPreference='Stop'
 $taskRepo=(Resolve-Path -LiteralPath "$PSScriptRoot\..\..").Path
 $taskGame=(Resolve-Path -LiteralPath $GameDir).Path
-$taskRuntime=Join-Path $taskRepo 'research\damping-runtime'
+$taskRuntime=Join-Path $taskRepo 'research\suspension-runtime'
 $taskReport=Join-Path $taskRuntime 'report.txt'
 dotnet build "$taskRepo\UltimateTools.csproj" -c Release "-p:GameDir=$taskGame" --nologo
 if($LASTEXITCODE -ne 0){throw 'Production build failed'}
@@ -27,14 +27,14 @@ Enabled = true
 LogLevels = All
 '@ | Set-Content -LiteralPath "$taskRuntime\BepInEx\config\BepInEx.cfg"
 if(Test-Path -LiteralPath $taskReport){Remove-Item -LiteralPath $taskReport}
-$taskArgs=@('-batchmode','-nographics','-logFile',('"'+$taskRuntime+'\unity.log"'),('-ultimate-tools-report="'+$taskReport+'"'),'-ultimate-tools-damping')
+$taskArgs=@('-batchmode','-nographics','-logFile',('"'+$taskRuntime+'\unity.log"'),('-ultimate-tools-report="'+$taskReport+'"'),'-ultimate-tools-suspension')
 $taskProcess=Start-Process -FilePath "$taskRuntime\Apocalypter.exe" -WorkingDirectory $taskRuntime -WindowStyle Hidden -ArgumentList $taskArgs -PassThru
 try{
-    if(!$taskProcess.WaitForExit(45000)){throw 'Damping verifier exceeded 45 seconds'}
+    if(!$taskProcess.WaitForExit(45000)){throw 'Suspension verifier exceeded 45 seconds'}
     if(!(Test-Path -LiteralPath $taskReport)){throw "Verifier produced no report; inspect $taskRuntime\unity.log"}
     $taskResult=Get-Content -LiteralPath $taskReport
     $taskResult
-    if(!($taskResult -match '^PASS:') -or ($taskResult -match '^ERROR:')){throw 'Damping regression checks failed'}
+    if(!($taskResult -match '^PASS:') -or ($taskResult -match '^ERROR:')){throw 'Suspension regression checks failed'}
 }finally{
     if(!$taskProcess.HasExited){Stop-Process -Id $taskProcess.Id}
 }

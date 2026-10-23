@@ -6,6 +6,5 @@
   <ItemGroup>
     <Compile Include="../../SuspensionOwnership.cs" Link="SuspensionOwnership.cs" />
     <Compile Include="../../SuspensionStanceMath.cs" Link="SuspensionStanceMath.cs" />
-    <Compile Include="../../SuspensionAlignmentDefaults.cs" Link="SuspensionAlignmentDefaults.cs" />
   </ItemGroup>
 </Project>

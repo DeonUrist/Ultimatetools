@@ -70,11 +70,11 @@ public sealed partial class UltimateVerifier
             foreach (float width in new[] {1f,1.5f,1.025f,1f})
             foreach (var values in new[] {new Vector2(0,0), new Vector2(.06f,.04f), new Vector2(-.06f,-.04f), new Vector2(0,0)})
             {
-                float h = values.x, balance = values.y, drop = buggy ? .1f : .2f;
+                float h = values.x, balance = values.y;
                 model.localScale = Vector3.Scale(nativeModel.localScale,new Vector3(width,1,1));
-                model.localPosition = nativeModel.localPosition - (buggy ? Vector3.up*(h+drop) : Vector3.zero);
+                model.localPosition = nativeModel.localPosition - (buggy ? Vector3.up*h : Vector3.zero);
                 Invoke(structure,"Apply",nativeModel.localPosition,nativeModel.localScale);
-                Invoke(stance,"Apply",buggy ? 0f : h+drop,balance,!buggy);
+                Invoke(stance,"Apply",buggy ? 0f : h,balance,!buggy);
                 Invoke(structure,"Apply",nativeModel.localPosition,nativeModel.localScale);
                 foreach (var row in group.Where(r => r[13] != ""))
                 {
@@ -84,7 +84,7 @@ public sealed partial class UltimateVerifier
                     bool separateSpring = t.name.Contains("spring") && !t.GetComponentsInParent<MeshFilter>(true).Any(m => m.transform != t && Axle(m.transform));
                     if (!lifted || (!Axle(t) && (!separateSpring || buggy))) continue;
                     var expected = model.localToWorldMatrix * nativeModel.worldToLocalMatrix * original.localToWorldMatrix;
-                    var delta = car.TransformVector(Vector3.up * (buggy ? 0f : h+drop));
+                    var delta = car.TransformVector(Vector3.up * (buggy ? 0f : h));
                     delta += car.TransformVector(Vector3.up * (t.name.Contains("front") ? balance : -balance));
                     expected.SetColumn(3, expected.GetColumn(3) - new Vector4(delta.x,delta.y,delta.z,0));
                     SamePose(t,expected,Check,group.Key+" axle/spring follows suspension only "+t.name);

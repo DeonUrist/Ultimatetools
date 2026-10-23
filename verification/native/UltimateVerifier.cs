@@ -46,10 +46,11 @@ public sealed partial class UltimateVerifier : BaseUnityPlugin
                 lines.Add("PASS: "+checks+" put-away native Unity checks.");
                 yield break;
             }
-            ProgressiveDamping();
-            if(Environment.GetCommandLineArgs().Contains("-ultimate-tools-damping"))
+            ManualSuspension();
+            if(Environment.GetCommandLineArgs().Contains("-ultimate-tools-suspension"))
             {
-                lines.Add("PASS: "+checks+" progressive damping native Unity checks.");
+                SuspensionGeometry();
+                lines.Add("PASS: "+checks+" manual suspension native Unity checks.");
                 yield break;
             }
             TailLightSpawning();

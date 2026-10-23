@@ -49,8 +49,6 @@ namespace PartAdjustment
             internal bool Lifted;
             internal bool Front;
             internal WheelController Controller;
-            internal Damper Damper;
-            internal readonly SuspensionDamping Damping = new SuspensionDamping();
         }
 
         internal static SuspensionAdjustment Ensure(Transform car)
@@ -82,7 +80,7 @@ namespace PartAdjustment
                 var suspension = SuspensionSupport.EnabledFsm(wheel.transform, "Suspension");
                 mounts.Add(new Mount { Transform = wheel.transform,
                     Baseline = KitFitted ? VanillaPosition(wheel.transform) : wheel.transform.localPosition,
-                    Controller = wheel, Damper = wheel.damper, Front = wheel.name.Contains("_F"),
+                    Controller = wheel, Front = wheel.name.Contains("_F"),
                     Suspension = suspension, Lifted = suspension?.ActiveStateName == "lifted" });
             }
             RestoreFactoryAssembly(KitFitted);
@@ -239,9 +237,9 @@ namespace PartAdjustment
 
         internal void Apply()
         {
-            if (!Supported()) { UpdateDamping(false); return; }
+            if (!Supported()) return;
             var update = ownership.BeginApply(KitFitted, Width != 1f || RideHeight != 0f || Balance != 0f);
-            if (update == SuspensionUpdate.None) { UpdateDamping(false); return; }
+            if (update == SuspensionUpdate.None) return;
             if (update == SuspensionUpdate.RestoreStock)
             {
                 Width = 1f;
@@ -257,19 +255,17 @@ namespace PartAdjustment
                 Plugin.Log.LogDebug("Suspension of " + name + " back to standard: no lift kit fitted.");
             }
             model.localScale = new Vector3(modelScale.x * Width, modelScale.y, modelScale.z);
-            float visualDrop = KitFitted ? SuspensionAlignmentDefaults.ModelDrop(buggyFamily) : 0f;
-            // Buggy assemblies retain their existing alignment. Lifted car bases stay at
-            // their vanilla body pose; only their axles receive height/alignment offsets.
-            model.localPosition = buggyFamily ? modelPosition - Vector3.up * (RideHeight + visualDrop) : modelPosition;
+            // Zero adjustment preserves the vanilla assembly. Only explicit tool settings
+            // move the model or axles; there is no built-in alignment calibration.
+            model.localPosition = buggyFamily ? modelPosition - Vector3.up * RideHeight : modelPosition;
             structure.Apply(modelPosition, modelScale);
-            stanceGeometry.Apply(buggyFamily ? 0f : RideHeight + visualDrop, Balance, !buggyFamily);
+            stanceGeometry.Apply(buggyFamily ? 0f : RideHeight, Balance, !buggyFamily);
             // Shields nested under a moving axle also belong to the fixed body.
             structure.Apply(modelPosition, modelScale);
             braces.ShowForWidth(Width);
             // Keep the native kit trigger with the assembly without stretching it.
             if (Hinge != null) Hinge.localPosition = hingePosition - Hinge.parent.InverseTransformVector(transform.TransformVector(Vector3.up * RideHeight));
             foreach (var mount in mounts) ApplyMount(mount);
-            UpdateDamping(true);
             if (body != null) body.WakeUp();
         }
 
@@ -277,30 +273,6 @@ namespace PartAdjustment
         {
             if (!ready) return;
             if (lastKit != KitFitted) { lastKit = KitFitted; Apply(); }
-            else UpdateDamping(Supported());
-        }
-
-        private void UpdateDamping(bool supported)
-        {
-            bool active = supported && isActiveAndEnabled && Plugin.Enabled.Value && KitFitted;
-            foreach (var mount in mounts)
-            {
-                var wheel = mount.Controller;
-                if (wheel == null) continue;
-                if (!ReferenceEquals(mount.Damper, wheel.damper))
-                {
-                    // A replaced damper is an external edit until a native state completes again.
-                    mount.Damper = wheel.damper;
-                    mount.Damping.ExternalChanged();
-                }
-                if (wheel.damper == null) continue;
-                float bump, rebound;
-                if (!mount.Damping.Update(wheel.DamperBumpRate, wheel.DamperReboundRate,
-                    SuspensionDamping.Fraction(RideHeight, Balance, mount.Front), active && mount.Lifted,
-                    out bump, out rebound)) continue;
-                wheel.DamperBumpRate = bump;
-                wheel.DamperReboundRate = rebound;
-            }
         }
 
         internal void WriteSaveVariables(FsmVariables variables)
@@ -365,7 +337,6 @@ namespace PartAdjustment
                     position.x += offset.x;
                 else position.x = AdjustmentMath.SpacedX(position.x, mount.Center, Width);
             }
-            position.x += SuspensionAlignmentDefaults.Lateral(buggyFamily, mount.Transform.name.EndsWith("L", StringComparison.Ordinal));
             position.y = SuspensionStanceMath.MountY(mount.Baseline.y, RideHeight, Balance, mount.Front);
             if (!mount.Transform.localPosition.Equals(position)) mount.Transform.localPosition = position;
             // NWH WheelController.Step reads this mount to cast the suspension ray, apply forces, and place
@@ -380,11 +351,6 @@ namespace PartAdjustment
             if (mount == null) return;
             mount.Baseline = wheel.localPosition;
             mount.Lifted = state == "lifted";
-            if (mount.Controller != null && mount.Controller.damper != null)
-            {
-                mount.Damper = mount.Controller.damper;
-                mount.Damping.NativeChanged(mount.Controller.DamperBumpRate, mount.Controller.DamperReboundRate);
-            }
             RefreshCenters();
             Apply();
         }
@@ -414,11 +380,8 @@ namespace PartAdjustment
             }
         }
 
-        private void OnDisable() => UpdateDamping(false);
-
         private void OnDestroy()
         {
-            UpdateDamping(false);
             indicators?.Destroy();
             All.Remove(this);
             Revision++;
